@@ -119,6 +119,8 @@
   section{padding:44px 0; border-bottom:1px solid var(--divider); scroll-margin-top:24px;}
   section:last-of-type{border-bottom:none;}
   .section-num{font-size:11px; letter-spacing:2px; color:var(--sub); margin-bottom:12px; display:block;}
+  .copy-link-btn{background:none; border:none; cursor:pointer; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--sub); text-decoration:underline; padding:0; margin-left:10px; font-family:inherit;}
+  .copy-link-btn:hover{color:var(--fg);}
 
   .card{ background:var(--cream); padding:22px 20px; margin:20px 0; }
   .card h3{margin-bottom:8px;}
@@ -577,17 +579,25 @@
     <section id="contatos">
       <span class="section-num">12</span>
       <h2>Contatos importantes</h2>
-      <p style="margin-bottom:20px;">Contatos da Magenta, empresa responsável pela administração da Casinha.</p>
+
+      <div class="card">
+        <h3>Emergência</h3>
+        <p><strong>Bombeiros:</strong> 193 &nbsp;·&nbsp; <strong>Polícia:</strong> 190 &nbsp;·&nbsp; <strong>SAMU:</strong> 192</p>
+      </div>
+
+      <p style="margin-bottom:20px; margin-top:20px;">Contatos da Magenta, empresa responsável pela administração da Casinha.</p>
 
       <div class="contact-row">
         <div class="contact-name">Regiane Campos</div>
         <div class="contact-role">Alarme, segurança e suporte da casa</div>
         <div class="contact-info">(11) 94070-6435 · regiane.campos@magenta.ag</div>
+        <a class="book-btn" style="display:inline-flex; width:auto; margin-top:8px;" href="https://wa.me/5511940706435?text=Oi%20Regiane!%20Sou%20da%20Sharp%20(Casinha%2C%20Casa%2058)%20e%20preciso%20de%20ajuda%20com%20" target="_blank" rel="noopener">Chamar no WhatsApp</a>
       </div>
       <div class="contact-row">
         <div class="contact-name">Erika Loaine</div>
         <div class="contact-role">Alarme, segurança e suporte da casa</div>
         <div class="contact-info">(11) 99433-5311 · erika.loaine@magenta.ag</div>
+        <a class="book-btn" style="display:inline-flex; width:auto; margin-top:8px;" href="https://wa.me/5511994335311?text=Oi%20Erika!%20Sou%20da%20Sharp%20(Casinha%2C%20Casa%2058)%20e%20preciso%20de%20ajuda%20com%20" target="_blank" rel="noopener">Chamar no WhatsApp</a>
       </div>
       <div class="contact-row">
         <div class="contact-name">Davi Ozolin</div>
@@ -643,7 +653,7 @@
     </main>
   </div>
 
-  <footer>©SHARP · Confidencial · 2026</footer>
+  <footer>©SHARP · Confidencial · Atualizado em 21 set. 2026</footer>
 
 </div>
 
@@ -780,6 +790,30 @@
       else toTop.classList.remove('show');
     }, { passive:true });
   }
+
+  document.querySelectorAll('main section[id]').forEach(function(section){
+    var num = section.querySelector('.section-num');
+    if (!num) return;
+    var btn = document.createElement('button');
+    btn.className = 'copy-link-btn';
+    btn.type = 'button';
+    btn.textContent = 'Copiar link';
+    num.appendChild(document.createTextNode(' · '));
+    num.appendChild(btn);
+    btn.addEventListener('click', function(){
+      var url = window.location.origin + window.location.pathname + '#' + section.id;
+      var done = function(){
+        var original = btn.textContent;
+        btn.textContent = 'Link copiado';
+        setTimeout(function(){ btn.textContent = original; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done).catch(done);
+      } else {
+        done();
+      }
+    });
+  });
 })();
 </script>
 

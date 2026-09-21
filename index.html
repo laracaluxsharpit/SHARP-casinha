@@ -190,6 +190,19 @@
   #google-login-btn{border:none; cursor:pointer; font-family:inherit; width:auto; margin:0 auto;}
   .logout-link{color:rgba(255,255,255,.45); text-decoration:underline; font-size:10px; letter-spacing:1px; text-transform:uppercase; display:inline-block; margin-top:8px; cursor:pointer;}
 
+  .report-gate{ position:fixed; inset:0; background:rgba(13,13,13,.92); color:var(--white); display:flex; align-items:center; justify-content:center; z-index:110; padding:24px; overflow-y:auto; }
+  .report-box{ max-width:420px; width:100%; background:var(--black); padding:32px 26px; }
+  .report-box h2{color:var(--white); font-size:22px; margin-bottom:10px;}
+  .report-box .auth-msg{margin-bottom:22px; text-align:left;}
+  .report-box form{display:flex; flex-direction:column; gap:16px;}
+  .report-box label{display:block; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,.5); margin-bottom:6px;}
+  .report-box input, .report-box textarea{ width:100%; background:transparent; border:1px solid rgba(255,255,255,.25); color:var(--white); font-family:inherit; font-size:14px; padding:10px 12px; box-sizing:border-box; }
+  .report-box input:focus, .report-box textarea:focus{ outline:none; border-color:rgba(255,255,255,.6); }
+  .report-box textarea{resize:vertical;}
+  .report-box .auth-error{text-align:left;}
+  .report-success{color:rgba(255,255,255,.85); font-size:14px; line-height:1.7;}
+  #report-cancel{ display:block; margin:14px auto 0; background:none; border:none; }
+
   .logo-mark{height:15px; width:auto; display:block;}
   .topbar .logo-mark{height:13px;}
   .sidebar-footer .logo-mark{height:14px; margin-bottom:10px;}
@@ -513,7 +526,8 @@
     <section id="itens">
       <span class="section-num">08</span>
       <h2>Itens, equipamentos e manutenção</h2>
-      <p>Equipamento quebrado, problema no mobiliário ou manutenção pendente? Avise contando o que aconteceu, onde, quando e, se possível, mande uma foto.</p>
+      <p>Equipamento quebrado, problema no mobiliário ou manutenção pendente? Avise contando o que aconteceu, onde e quando.</p>
+      <a class="book-btn" id="open-report-btn" style="display:inline-flex; width:auto; margin-top:8px; cursor:pointer;">Reportar problema</a>
     </section>
 
     <section id="pernilongos">
@@ -659,6 +673,31 @@
 
 <a href="#bemvindos" class="to-top" id="toTop" aria-label="Voltar ao topo">↑</a>
 
+<div class="report-gate" id="report-modal" style="display:none">
+  <div class="report-box">
+    <h2>Reportar problema</h2>
+    <p class="auth-msg">Conta o que aconteceu, onde e quando — a gente cuida do resto.</p>
+    <form id="report-form">
+      <div>
+        <label for="report-item">Item ou equipamento</label>
+        <input type="text" id="report-item" required>
+      </div>
+      <div>
+        <label for="report-local">Local</label>
+        <input type="text" id="report-local" placeholder="Ex: Compressão, copa, banheiro...">
+      </div>
+      <div>
+        <label for="report-desc">O que aconteceu</label>
+        <textarea id="report-desc" rows="4" required></textarea>
+      </div>
+      <button type="submit" class="book-btn">Enviar reporte</button>
+      <button type="button" id="report-cancel" class="logout-link">Cancelar</button>
+    </form>
+    <p class="auth-error" id="report-error"></p>
+    <p class="report-success" id="report-success" style="display:none">Reporte salvo. Abrindo seu e-mail pra confirmar o envio pra Lara, Micha e Clarissa...</p>
+  </div>
+</div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -668,6 +707,7 @@
   var SUPABASE_ANON_KEY = 'sb_publishable_88yxvlXIJrxkdkQtwtMwlg_wb2p8W__';
   var ALLOWED_DOMAIN = 'sharpit.co';
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.sbClient = sb;
 
   var PWD_KEY = 'casinha_pwd_ok';
   var authGate = document.getElementById('auth-gate');
@@ -813,6 +853,85 @@
         done();
       }
     });
+  });
+})();
+</script>
+
+<script>
+(function(){
+  var REPORT_RECIPIENTS = ['lara.calux@sharpit.co', 'micha.nunes@sharpit.co', 'clarissa.vieira@sharpit.co'];
+
+  var openBtn = document.getElementById('open-report-btn');
+  var modal = document.getElementById('report-modal');
+  var cancelBtn = document.getElementById('report-cancel');
+  var form = document.getElementById('report-form');
+  var errorEl = document.getElementById('report-error');
+  var successEl = document.getElementById('report-success');
+  if (!openBtn || !modal || !form) return;
+
+  openBtn.addEventListener('click', function(){
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+    form.style.display = 'flex';
+    form.reset();
+    modal.style.display = 'flex';
+  });
+
+  cancelBtn.addEventListener('click', function(){
+    modal.style.display = 'none';
+  });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    errorEl.style.display = 'none';
+
+    var item = document.getElementById('report-item').value.trim();
+    var local = document.getElementById('report-local').value.trim();
+    var desc = document.getElementById('report-desc').value.trim();
+    if (!item || !desc) return;
+
+    var submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    var sb = window.sbClient;
+    var email = '';
+    try {
+      var res = await sb.auth.getSession();
+      var session = res.data && res.data.session;
+      email = (session && session.user && session.user.email) || '';
+    } catch (err) {}
+
+    var insertResult = await sb.from('manutencao_reports').insert({
+      reporter_email: email,
+      item: item,
+      local: local,
+      descricao: desc
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Enviar reporte';
+
+    if (insertResult.error) {
+      errorEl.textContent = 'Não consegui salvar o reporte. Tenta de novo.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    form.style.display = 'none';
+    successEl.style.display = 'block';
+
+    var subject = encodeURIComponent('Manutenção Casinha: ' + item);
+    var body = encodeURIComponent(
+      'Item/equipamento: ' + item + '\n' +
+      'Local: ' + (local || 'não informado') + '\n' +
+      'O que aconteceu: ' + desc + '\n' +
+      'Reportado por: ' + (email || 'não identificado')
+    );
+    var mailto = 'mailto:' + REPORT_RECIPIENTS.join(',') + '?subject=' + subject + '&body=' + body;
+
+    setTimeout(function(){ window.location.href = mailto; }, 800);
+    setTimeout(function(){ modal.style.display = 'none'; }, 3000);
   });
 })();
 </script>

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Casinha — Manual de Uso · Sharp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@100;200;300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0D0D0D;
+    --white:#FFFFFF;
+    --cream:#F6F3EF;
+    --dark-gray:#202020;
+    --medium-gray:#898D95;
+    --divider:#EAEAEA;
+    --divider-dark:rgba(255,255,255,.15);
+    --bg:var(--white);
+    --fg:var(--black);
+    --sub:var(--medium-gray);
+    --sidebar-w:264px;
+  }
+  :root:not([data-theme="light"]){ --bg:var(--white); --fg:var(--black); --sub:var(--medium-gray); }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:var(--white); --fg:var(--black); --sub:var(--medium-gray); }
+  }
+  :root[data-theme="dark"]{ --bg:var(--white); --fg:var(--black); --sub:var(--medium-gray); }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:'DM Sans', Arial, Helvetica, sans-serif;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  /* ---------- MOBILE FIRST BASE ---------- */
+  .eyebrow{ font-size:11px; font-weight:500; letter-spacing:2.5px; text-transform:uppercase; color:var(--sub); }
+  h1,h2,h3{font-weight:200; margin:0; letter-spacing:1.5px; text-transform:uppercase;}
+  h2{font-size:22px; line-height:1.3;}
+  h3{font-size:15px; letter-spacing:1px; font-weight:500;}
+  p{font-size:15px; line-height:1.75; color:var(--fg); margin:0 0 14px;}
+  .lede{font-size:17px; line-height:1.7; font-weight:300;}
+  ul{margin:0 0 14px; padding-left:18px;}
+  li{font-size:15px; line-height:1.75; margin-bottom:6px;}
+
+  /* ---- toggle (mobile menu) ---- */
+  .nav-toggle-input{position:absolute; opacity:0; pointer-events:none;}
+
+  .topbar{
+    position:sticky; top:0; z-index:60;
+    padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;
+    background:rgba(255,255,255,.94); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--divider);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .topbar .brand{font-weight:700; letter-spacing:1.5px; font-size:12px;}
+  .hamburger{
+    display:flex; flex-direction:column; justify-content:center; gap:5px;
+    width:34px; height:34px; cursor:pointer;
+  }
+  .hamburger span{display:block; width:20px; height:1px; background:var(--fg); transition:transform .25s ease, opacity .25s ease;}
+  .nav-toggle-input:checked ~ .topbar .hamburger span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+  .nav-toggle-input:checked ~ .topbar .hamburger span:nth-child(2){opacity:0;}
+  .nav-toggle-input:checked ~ .topbar .hamburger span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+
+  .backdrop{
+    position:fixed; inset:0; background:rgba(13,13,13,.4);
+    opacity:0; pointer-events:none; transition:opacity .3s ease; z-index:65;
+  }
+  .nav-toggle-input:checked ~ .backdrop{opacity:1; pointer-events:auto;}
+
+  .sidebar{
+    position:fixed; top:0; left:0; height:100%; width:min(84vw,320px);
+    background:var(--black); color:var(--white);
+    z-index:70;
+    padding:calc(28px + env(safe-area-inset-top,0px)) 26px 28px;
+    display:flex; flex-direction:column;
+    transform:translateX(-100%);
+    transition:transform .35s cubic-bezier(.4,0,.2,1);
+    overflow-y:auto;
+  }
+  .nav-toggle-input:checked ~ .sidebar{transform:translateX(0);}
+
+  .sidebar .brand{
+    font-weight:700; letter-spacing:2px; font-size:13px; color:var(--white); margin-bottom:6px;
+  }
+  .sidebar .brand-sub{font-size:11px; letter-spacing:1px; color:rgba(255,255,255,.45); margin-bottom:34px;}
+  .sidebar nav{display:flex; flex-direction:column; gap:2px;}
+  .sidebar nav a{
+    display:flex; align-items:center; gap:12px;
+    text-decoration:none; color:rgba(255,255,255,.6);
+    font-size:12.5px; letter-spacing:1px; text-transform:uppercase;
+    padding:11px 4px; border-left:2px solid transparent;
+    transition:color .25s ease, border-color .25s ease;
+  }
+  .sidebar nav a .n{font-size:10px; color:rgba(255,255,255,.35); flex:0 0 16px;}
+  .sidebar nav a:hover{color:rgba(255,255,255,.9);}
+  .sidebar nav a.active{color:var(--white); border-left-color:var(--white); padding-left:12px;}
+  .sidebar nav a.active .n{color:rgba(255,255,255,.6);}
+  .sidebar-footer{margin-top:auto; padding-top:24px; font-size:10px; letter-spacing:2px; color:rgba(255,255,255,.3); text-transform:uppercase;}
+
+  .content-wrap{}
+
+  .hero{ background:var(--black); color:var(--white); padding:56px 20px 42px; text-align:center; }
+  .hero .eyebrow{color:rgba(255,255,255,.55);}
+  .hero h1{ color:var(--white); font-size:40px; font-weight:100; letter-spacing:2px; margin:14px 0 8px; }
+  .hero .sub{font-size:13px; letter-spacing:1px; color:rgba(255,255,255,.6); font-weight:300;}
+  .hero .addr{margin-top:22px; font-size:12px; letter-spacing:.5px; color:rgba(255,255,255,.45); line-height:1.6;}
+
+  main{max-width:720px; margin:0 auto; padding:0 20px;}
+
+  section{padding:44px 0; border-bottom:1px solid var(--divider); scroll-margin-top:24px;}
+  section:last-of-type{border-bottom:none;}
+  .section-num{font-size:11px; letter-spacing:2px; color:var(--sub); margin-bottom:12px; display:block;}
+
+  .card{ background:var(--cream); padding:22px 20px; margin:20px 0; }
+  .card h3{margin-bottom:8px;}
+  .card p{margin-bottom:0;}
+
+  .space-card{border-bottom:1px solid var(--divider); padding:24px 0;}
+  .space-card:first-child{padding-top:0;}
+  .space-meta{font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--sub); margin-bottom:6px;}
+  .space-name{font-style:italic; font-weight:500; font-size:18px; margin-bottom:4px;}
+  .space-body{display:flex; flex-direction:column; gap:16px;}
+  .space-book{
+    display:flex; flex-direction:column; align-items:flex-start; gap:12px;
+    background:var(--cream); padding:16px; width:100%;
+  }
+  .qr{ display:block; width:100px; height:100px; background:#fff; padding:6px; }
+  .book-btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    text-decoration:none;
+    background:var(--black); color:var(--white);
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    padding:12px 18px; text-align:center; width:100%;
+    transition:opacity .3s ease;
+  }
+  .book-btn:hover, .book-btn:active{opacity:.72;}
+
+  table{width:100%; border-collapse:collapse; margin:18px 0; font-size:12.5px;}
+  th,td{text-align:left; padding:10px 6px; border-bottom:1px solid var(--divider); vertical-align:top;}
+  th{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--sub); font-weight:500;}
+  .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+
+  .steps{counter-reset:step;}
+  .step{display:flex; gap:14px; padding:12px 0; border-bottom:1px solid var(--divider); font-size:15px; line-height:1.6;}
+  .step:last-child{border-bottom:none;}
+  .step::before{
+    counter-increment:step; content:counter(step);
+    flex:0 0 26px; height:26px; border:1px solid var(--fg);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px;
+  }
+
+  .closing-block{margin-bottom:22px;}
+  .closing-block h3{margin-bottom:8px;}
+
+  .contact-row{display:flex; flex-direction:column; gap:6px; padding:14px 0; border-bottom:1px solid var(--divider);}
+  .contact-row:last-child{border-bottom:none;}
+  .contact-name{font-weight:500; font-size:15px;}
+  .contact-role{font-size:12.5px; color:var(--sub);}
+  .contact-info{font-size:12.5px; color:var(--sub);}
+
+  .pending{ background:var(--black); color:var(--white); padding:44px 20px; }
+  .pending main{padding:0;}
+  .pending .eyebrow{color:rgba(255,255,255,.5);}
+  .pending h2{color:var(--white); margin-bottom:8px;}
+  .pending .lede{color:rgba(255,255,255,.7); margin-bottom:26px;}
+  .pending-item{border-bottom:1px solid var(--divider-dark); padding:16px 0;}
+  .pending-item:last-child{border-bottom:none;}
+  .pending-item .tag{font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,.45); margin-bottom:6px; display:block;}
+  .pending-item p{color:rgba(255,255,255,.85); margin:0; font-size:14.5px;}
+
+  footer{ background:var(--black); color:rgba(255,255,255,.5); text-align:center; padding:24px 20px; font-size:10px; letter-spacing:2px; text-transform:uppercase; }
+
+  .auth-gate{ position:fixed; inset:0; background:var(--black); color:var(--white); display:flex; align-items:center; justify-content:center; text-align:center; z-index:100; padding:24px; }
+  .auth-box{max-width:360px;}
+  .auth-box h1{color:var(--white); font-size:30px; margin:14px 0 6px;}
+  .auth-msg{font-size:14px; line-height:1.7; color:rgba(255,255,255,.65); margin:0 0 28px;}
+  .auth-error{display:none; color:#ff9a9a; margin-top:16px; font-size:12.5px; line-height:1.6;}
+  #google-login-btn{border:none; cursor:pointer; font-family:inherit; width:auto; margin:0 auto;}
+  .logout-link{color:rgba(255,255,255,.45); text-decoration:underline; font-size:10px; letter-spacing:1px; text-transform:uppercase; display:inline-block; margin-top:8px; cursor:pointer;}
+
+  .logo-mark{height:15px; width:auto; display:block;}
+  .topbar .logo-mark{height:13px;}
+  .sidebar-footer .logo-mark{height:14px; margin-bottom:10px;}
+  .auth-box .logo-mark{height:24px; margin:0 auto 18px;}
+  .hero .logo-mark{height:26px; margin:0 auto 16px;}
+
+  .onboarding-gate{ position:fixed; inset:0; background:var(--black); color:var(--white); display:flex; align-items:center; justify-content:center; text-align:center; z-index:99; padding:24px; }
+  .onboarding-box{max-width:380px;}
+  .onboarding-box h2{color:var(--white); font-size:20px; margin:0 0 14px;}
+  .onboarding-box p{color:rgba(255,255,255,.7); font-size:14px; line-height:1.7;}
+  .onboarding-divider{height:1px; background:rgba(255,255,255,.15); margin:22px 0;}
+  #onboarding-confirm-btn{border:none; cursor:pointer; font-family:inherit; width:auto; margin:0 auto; background:transparent; color:var(--white); border:1px solid rgba(255,255,255,.35) !important; text-decoration:none;}
+  #onboarding-confirm-btn:hover{opacity:.72;}
+
+  .to-top{
+    position:fixed; right:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px));
+    width:42px; height:42px; background:var(--black); color:var(--white);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; text-decoration:none; z-index:40;
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  .to-top.show{opacity:1; pointer-events:auto;}
+
+  /* ---------- DESKTOP: FIXED LEFT SIDEBAR ---------- */
+  @media (min-width:960px){
+    .topbar{display:none;}
+    .backdrop{display:none;}
+
+    .sidebar{
+      transform:none; position:fixed; width:var(--sidebar-w);
+      border-right:1px solid rgba(255,255,255,.08);
+      padding:44px 30px 30px;
+    }
+    .content-wrap{margin-left:var(--sidebar-w);}
+
+    .hero{padding:90px 24px 70px;}
+    .hero h1{font-size:clamp(46px,5vw,64px); letter-spacing:3px;}
+    .hero .addr{font-size:13px;}
+    main{padding:0 40px;}
+    section{padding:64px 0; scroll-margin-top:32px;}
+    h2{font-size:clamp(24px,2.4vw,30px);}
+    .card{padding:28px 32px;}
+    table{font-size:14px;}
+    th,td{padding:12px 10px;}
+    .space-body{flex-direction:row; justify-content:space-between; gap:24px;}
+    .space-text{flex:1;}
+    .space-book{flex-direction:row; align-items:center; width:auto; flex:0 0 auto;}
+    .book-btn{width:auto;}
+    .to-top{display:none;}
+  }
+
+  @media (min-width:1200px){
+    :root{--sidebar-w:280px;}
+  }
+</style>
+</head>
+<body>
+
+<input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="sharp-logo" viewBox="0 0 1733.85 339.28">
+      <path fill="currentColor" d="m198.78,157.79c-14.38-5.69-33.1-11.21-56.15-16.58-16.75-3.79-29.78-7.34-39.1-10.66-9.32-3.32-17.06-8.06-23.22-14.22s-9.24-14.14-9.24-23.93c0-11.68,4.74-21,14.21-27.96,9.48-6.94,22.43-10.42,38.86-10.42,17.37,0,31.51,4.43,42.41,13.27,10.9,8.85,16.98,20.54,18.24,35.07h59.71c-.95-20.53-6.56-38.54-16.82-54.02-10.27-15.47-24.33-27.4-42.17-35.78C167.66,4.19,147.2,0,124.15,0s-41.86,3.87-59.23,11.61c-17.38,7.75-30.88,18.64-40.51,32.7-9.64,14.06-14.45,30.09-14.45,48.1,0,22.43,5.13,40.28,15.4,53.55,10.26,13.27,22.58,22.91,36.96,28.91,14.37,6,32.93,11.85,55.68,17.53,16.11,4.11,28.82,7.9,38.15,11.37,9.31,3.48,16.98,8.14,22.98,13.98,6,5.85,9,13.67,9,23.46,0,14.21-5.45,25.11-16.35,32.69-10.9,7.58-25.51,11.37-43.83,11.37-19.9,0-35.78-5.52-47.62-16.58-11.85-11.06-18.56-25.9-20.14-44.54H0c.95,23.06,6.87,43.28,17.77,60.65,10.9,17.38,25.74,30.8,44.54,40.28,18.79,9.48,40.67,14.22,65.63,14.22s45.8-4.03,64.44-12.08c18.64-8.06,33.17-19.5,43.6-34.36,10.42-14.84,15.64-32.38,15.64-52.6,0-23.06-5.21-41.14-15.64-54.26-10.43-13.1-22.83-22.51-37.2-28.19Z"/>
+      <polygon fill="currentColor" points="501.34 138.37 353.49 138.37 353.49 3.79 291.42 3.79 291.42 335.49 353.49 335.49 353.49 192.86 501.34 192.86 501.34 335.49 563.89 335.49 563.89 3.79 501.34 3.79 501.34 138.37"/>
+      <path fill="currentColor" d="m715.99,3.79l-127.94,331.7h64.92l28.36-77.24h128.07l28.36,77.24h64.45L774.75,3.79h-58.76Zm-15.17,201.39l44.55-121.31,44.55,121.31h-89.09Z"/>
+      <path fill="currentColor" d="m1139.61,186.23c-3.47-3.21-7.17-6.07-11.07-8.61,11.32-5.83,20.78-13.3,28.36-22.42,10.9-13.11,16.35-29.45,16.35-49.05s-4.43-37.59-13.27-53.07c-8.85-15.47-21.56-27.56-38.15-36.25-16.58-8.69-36.25-13.03-58.99-13.03h-135.52v331.7h62.55v-124.62h71.55c12.32,0,22.58,4.03,30.8,12.08,8.21,8.06,12.79,18.41,13.74,31.04l8.06,81.5h62.07l-8.05-88.61c-2.21-24.95-11.69-45.17-28.43-60.65Zm-149.74-129.84h70.13c17.37,0,30.4,4.67,39.09,13.98,8.68,9.32,13.03,21.25,13.03,35.77,0,9.17-1.89,17.61-5.69,25.35-3.79,7.75-9.56,13.91-17.3,18.48-7.74,4.58-17.46,6.87-29.14,6.87h-70.13V56.39Z"/>
+      <path fill="currentColor" d="m1412.55,16.82c-16.75-8.69-36.33-13.03-58.76-13.03h-132.68v331.7h62.55v-126.05h70.13c22.43,0,42.01-4.34,58.76-13.03,16.74-8.68,29.53-20.85,38.38-36.49,8.84-15.64,13.27-33.56,13.27-53.78s-4.43-37.59-13.27-53.07c-8.85-15.47-21.64-27.56-38.38-36.25Zm-22.51,125.81c-8.69,9.48-21.72,14.22-39.09,14.22h-67.29V56.39h67.29c17.37,0,30.4,4.74,39.09,14.22,8.68,9.48,13.03,21.49,13.03,36.01s-4.35,26.53-13.03,36.01Z"/>
+      <path fill="currentColor" d="m1678.92,0c-15.17,0-28.9,6.15-38.84,16.09-5.96,5.96-13.78,8.94-21.59,8.94s-15.63-2.98-21.59-8.94c-9.94-9.94-23.67-16.09-38.84-16.09-30.34,0-54.93,24.59-54.93,54.93s24.59,54.93,54.93,54.93c15.17,0,28.9-6.15,38.84-16.09,5.96-5.96,13.78-8.94,21.59-8.94s15.63,2.98,21.59,8.94c9.94,9.94,23.67,16.09,38.84,16.09,30.34,0,54.93-24.59,54.93-54.93S1709.26,0,1678.92,0Zm0,91.68c-9.82,0-19.04-3.82-25.98-10.76-9.2-9.2-21.44-14.27-34.45-14.27s-25.25,5.07-34.45,14.27c-6.94,6.94-16.17,10.76-25.98,10.76-20.26,0-36.74-16.48-36.74-36.74s16.48-36.74,36.74-36.74c9.82,0,19.04,3.82,25.98,10.76,9.2,9.2,21.44,14.27,34.45,14.27s25.25-5.07,34.45-14.27c6.94-6.94,16.17-10.76,25.98-10.76,20.26,0,36.74,16.48,36.74,36.74s-16.48,36.74-36.74,36.74Z"/>
+      <path fill="currentColor" d="m1678.18,41.34h.49c4.04,0,6.37,2.45,6.98,6.98h13.22c0-9.92-6.12-18.25-20.45-18.25-15.18,0-21.43,12.37-21.43,24.86s6.25,24.86,21.43,24.86c14.33,0,20.45-8.57,20.45-18.61h-13.1c-.61,4.78-3.06,7.35-7.1,7.35h-.49c-5.14,0-7.84-3.8-7.84-13.59s2.7-13.59,7.84-13.59Z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="auth-gate" id="auth-gate">
+  <div class="auth-box">
+    <svg class="logo-mark" viewBox="0 0 1733.85 339.28" aria-label="Sharp" style="margin-left:auto; margin-right:auto;"><use href="#sharp-logo"></use></svg>
+    <div class="eyebrow">Espaço Físico</div>
+    <h1>Casinha</h1>
+    <p class="auth-msg">Entre com seu e-mail @sharpit.co pra acessar o manual.</p>
+    <button id="google-login-btn" class="book-btn">Entrar com Google</button>
+    <p class="auth-error" id="auth-error"></p>
+  </div>
+</div>
+
+<div class="onboarding-gate" id="onboarding-gate" style="display:none">
+  <div class="onboarding-box">
+    <svg class="logo-mark" viewBox="0 0 1733.85 339.28" aria-label="Sharp" style="margin-left:auto; margin-right:auto;"><use href="#sharp-logo"></use></svg>
+    <h2>Antes de continuar</h2>
+    <p>Pra acessar o resto do manual, você precisa ter sua senha cadastrada na porta principal da Casinha.</p>
+    <a class="book-btn" style="display:inline-flex; width:auto; margin-top:8px;" href="https://wa.me/5511964375762?text=Oi%20Davi!%20Sou%20da%20Sharp%20(Casinha%2C%20Casa%2058)%20e%20preciso%20cadastrar%20minha%20senha%20de%20acesso%20na%20porta%20principal.%20Meu%20nome%20completo%3A%20" target="_blank" rel="noopener">Chamar Davi no WhatsApp</a>
+    <div class="onboarding-divider"></div>
+    <p>Já cadastrou sua senha?</p>
+    <button id="onboarding-confirm-btn" class="book-btn">Já cadastrei — continuar</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+
+<div class="topbar">
+  <div class="brand"><svg class="logo-mark" viewBox="0 0 1733.85 339.28" aria-label="Sharp"><use href="#sharp-logo"></use></svg></div>
+  <label for="nav-toggle" class="hamburger" aria-label="Abrir menu"><span></span><span></span><span></span></label>
+</div>
+
+<label for="nav-toggle" class="backdrop" aria-hidden="true"></label>
+
+<aside class="sidebar">
+  <div class="brand">CASINHA</div>
+  <div class="brand-sub">Manual de uso · Sharp</div>
+  <nav id="sidebar-nav">
+      <a href="#bemvindos" data-target="bemvindos"><span class="n">01</span>Bem-vindos</a>
+      <a href="#acesso" data-target="acesso"><span class="n">02</span>Acesso</a>
+      <a href="#wifi" data-target="wifi"><span class="n">03</span>Wi-Fi</a>
+      <a href="#espacos" data-target="espacos"><span class="n">04</span>Espaços</a>
+      <a href="#reservas" data-target="reservas"><span class="n">05</span>Reservas</a>
+      <a href="#convivencia" data-target="convivencia"><span class="n">06</span>Convivência</a>
+      <a href="#limpeza" data-target="limpeza"><span class="n">07</span>Limpeza</a>
+      <a href="#itens" data-target="itens"><span class="n">08</span>Manutenção</a>
+      <a href="#pernilongos" data-target="pernilongos"><span class="n">09</span>Área externa</a>
+      <a href="#fechamento" data-target="fechamento"><span class="n">10</span>Fechamento</a>
+      <a href="#estacionamento" data-target="estacionamento"><span class="n">11</span>Estacionamento</a>
+      <a href="#contatos" data-target="contatos"><span class="n">12</span>Contatos</a>
+      <a href="#jeito" data-target="jeito"><span class="n">13</span>Nosso jeito</a>
+      <a href="#pendencias" data-target="pendencias"><span class="n">!</span>Pendências</a>
+  </nav>
+  <div class="sidebar-footer">
+    <svg class="logo-mark" viewBox="0 0 1733.85 339.28" aria-label="Sharp"><use href="#sharp-logo"></use></svg>
+    Confidencial<br><span class="logout-link" id="logout-link">Sair</span>
+  </div>
+</aside>
+
+<div class="content-wrap">
+
+  <div class="hero">
+    <svg class="logo-mark" viewBox="0 0 1733.85 339.28" aria-label="Sharp" style="margin-left:auto; margin-right:auto;"><use href="#sharp-logo"></use></svg>
+    <div class="eyebrow">Espaço Físico</div>
+    <h1>Casinha</h1>
+    <div class="sub">Manual de uso</div>
+    <div class="addr">R. Itamirindiba, 58 — Pinheiros<br>São Paulo — SP, 05429-060</div>
+  </div>
+
+  <main>
+
+    <section id="bemvindos">
+      <span class="section-num">01</span>
+      <h2>Bem-vindos à Casinha</h2>
+      <p class="lede">A Casinha é o espaço físico da Sharp em Pinheiros. É onde a gente trabalha, recebe cliente, faz reunião e também descansa.</p>
+      <p>Esse manual junta o que você precisa saber pra usar a casa: como entrar, como reservar um espaço, os cuidados do dia a dia e o checklist de quem fecha.</p>
+    </section>
+
+    <section id="acesso">
+      <span class="section-num">02</span>
+      <h2>Como acessar a Casinha</h2>
+
+      <h3 style="margin-top:24px;">Portão de entrada</h3>
+      <p>O portão tem cadeado. <strong>Senha: 047.</strong> Ao entrar ou sair, confira se o portão fechou direito e coloque o cadeado.</p>
+
+      <h3>Porta principal e acesso individual</h3>
+      <p>A porta principal tem fechadura digital. Cada pessoa cadastra a própria senha, pessoalmente, com a equipe do escritório. Não existe senha geral pra compartilhar — depois de cadastrar, use sempre a sua.</p>
+
+      <div class="card">
+        <h3>Ainda não tem senha cadastrada?</h3>
+        <p>Chame o Davi, da Magenta (TI), pelo WhatsApp — é só completar com seu nome e enviar.</p>
+        <a class="book-btn" style="display:inline-flex; width:auto; margin-top:14px;" href="https://wa.me/5511964375762?text=Oi%20Davi!%20Sou%20da%20Sharp%20(Casinha%2C%20Casa%2058)%20e%20preciso%20cadastrar%20minha%20senha%20de%20acesso%20na%20porta%20principal.%20Meu%20nome%20completo%3A%20" target="_blank" rel="noopener">Chamar Davi no WhatsApp</a>
+      </div>
+
+      <h3>Primeira visita</h3>
+      <p>Na primeira vez, você cadastra sua senha, aprende a usar entrada e alarme, conhece os espaços e entende como reservar e fechar a casa.</p>
+
+      <h3>Alarme — Verisure</h3>
+      <div class="card">
+        <h3>O primeiro a chegar</h3>
+        <p>Entre, encoste a tag no aparelho da Verisure pra desativar o alarme e confira se desativou antes de circular pela casa.</p>
+      </div>
+      <div class="card">
+        <h3>O último a sair</h3>
+        <p>Faça o Checklist de Fechamento (seção 10) antes de tudo. Depois, aperte o botão da Verisure, encoste a tag e confirme que o alarme ativou. Não conseguiu? Chame Regiane ou Erika, da Magenta — contatos na seção 12.</p>
+      </div>
+    </section>
+
+    <section id="wifi">
+      <span class="section-num">03</span>
+      <h2>Wi-Fi e suporte</h2>
+      <p><strong>Rede:</strong> Magenta &nbsp;·&nbsp; <strong>Senha:</strong> magenta2025</p>
+      <p>Problema com internet, sistema, acesso ou senha de porta: chame o Davi Ozolin, da Magenta (TI). Questão de casa ou segurança: chame a Regiane ou a Erika. Contatos completos na seção 12.</p>
+      <a class="book-btn" style="display:inline-flex; width:auto; margin-top:4px;" href="https://wa.me/5511964375762?text=Oi%20Davi!%20Sou%20da%20Sharp%20(Casinha%2C%20Casa%2058)%20e%20estou%20com%20problema%20de%20internet%2FWi-Fi.%20Pode%20me%20ajudar%3F" target="_blank" rel="noopener">Chamar Davi no WhatsApp</a>
+    </section>
+
+    <section id="espacos">
+      <span class="section-num">04</span>
+      <h2>Conheça os espaços da Casinha</h2>
+      <p>Cada espaço serve pra um tipo de encontro. Antes de reservar, pense em quantas pessoas vão, se precisa de privacidade, se é híbrida ou tem apresentação, e se o clima é mais formal ou solto. Isso ajuda a distribuir melhor o uso da casa.</p>
+      <p style="margin-top:-6px;">Cada sala abaixo tem QR code próprio — o mesmo fixado na porta — com atalho direto pra reservar no Google Calendar.</p>
+
+      <div class="space-card">
+        <div class="space-body">
+          <div class="space-text">
+            <div class="space-meta">Coworking · até 15 pessoas</div>
+            <div class="space-name">Junto &amp; Misturado</div>
+            <p>O espaço principal de trabalho compartilhado. Bom pro dia a dia presencial, trabalho em grupo e encontro de time.</p>
+          </div>
+          <div class="space-book">
+            <img class="qr" src="data:image/png;base64,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" alt="QR code para reservar Junto & Misturado" width="120" height="120">
+            <a class="book-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Reservar%20-%20Junto%20%26%20Misturado&amp;add=c_18839q6tpb4hijciidatsftifj720@resource.calendar.google.com" target="_blank" rel="noopener">Reservar</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-card">
+        <div class="space-body">
+          <div class="space-text">
+            <div class="space-meta">Área externa · até 30 pessoas</div>
+            <div class="space-name">Tardezinha</div>
+            <p>O espaço aberto da casa. Bom pra pausa, café, refeição, papo solto e comemoração pequena.</p>
+          </div>
+          <div class="space-book">
+            <img class="qr" src="data:image/png;base64,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" alt="QR code para reservar Tardezinha" width="120" height="120">
+            <a class="book-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Reservar%20-%20Tardezinha&amp;add=c_188bsc9tu0sukhdngb55qcv386bck@resource.calendar.google.com" target="_blank" rel="noopener">Reservar</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-card">
+        <div class="space-body">
+          <div class="space-text">
+            <div class="space-meta">Sala de reunião · térreo · até 7 pessoas</div>
+            <div class="space-name">Porta dos Fundos</div>
+            <p>Sala fechada pra reunião que pede concentração ou privacidade: presencial, híbrida, apresentação, cliente.</p>
+          </div>
+          <div class="space-book">
+            <img class="qr" src="data:image/png;base64,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" alt="QR code para reservar Porta dos Fundos" width="120" height="120">
+            <a class="book-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Reservar%20-%20Porta%20dos%20Fundos&amp;add=c_1881t5gb11ikoj9virddv0hul9k7k@resource.calendar.google.com" target="_blank" rel="noopener">Reservar</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-card">
+        <div class="space-body">
+          <div class="space-text">
+            <div class="space-meta">Sala de reunião · andar superior · até 6 pessoas</div>
+            <div class="space-name">Compressão</div>
+            <p>Sala menor e mais reservada. Boa pra 1:1, grupo pequeno, conversa que pede privacidade, reunião online ou híbrida.</p>
+          </div>
+          <div class="space-book">
+            <img class="qr" src="data:image/png;base64,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" alt="QR code para reservar Compressão" width="120" height="120">
+            <a class="book-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Reservar%20-%20Compress%C3%A3o&amp;add=c_1887m1do2gb9ejuanfu7c73ftn1qg@resource.calendar.google.com" target="_blank" rel="noopener">Reservar</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-card">
+        <div class="space-body">
+          <div class="space-text">
+            <div class="space-meta">Sala informal · andar superior · até 15 pessoas</div>
+            <div class="space-name">Descompressão</div>
+            <p>Ambiente informal, fora do formato tradicional de sala de reunião. Bom pra brainstorm, dinâmica, papo e pausa.</p>
+          </div>
+          <div class="space-book">
+            <img class="qr" src="data:image/png;base64,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" alt="QR code para reservar Descompressão" width="120" height="120">
+            <a class="book-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Reservar%20-%20Descompress%C3%A3o&amp;add=c_188fu3m52bka2gtamqjidr52ebn6m@resource.calendar.google.com" target="_blank" rel="noopener">Reservar</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+      <table>
+        <tr><th>Espaço</th><th>Tipo</th><th>Qt.</th><th>Melhor para</th></tr>
+        <tr><td>Junto &amp; Misturado</td><td>Coworking</td><td>15</td><td>Trabalho coletivo, encontros de time</td></tr>
+        <tr><td>Tardezinha</td><td>Área externa</td><td>30</td><td>Convivência, refeições, celebrações</td></tr>
+        <tr><td>Porta dos Fundos</td><td>Sala de reunião</td><td>7</td><td>Reuniões, apresentações, clientes</td></tr>
+        <tr><td>Compressão</td><td>Sala de reunião</td><td>6</td><td>1:1s, pequenos grupos</td></tr>
+        <tr><td>Descompressão</td><td>Sala informal</td><td>15</td><td>Brainstorms, encontros informais</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section id="reservas">
+      <span class="section-num">05</span>
+      <h2>Como reservar os espaços</h2>
+      <p>As reservas são pelo Google Calendar. Reservar ajuda todo mundo a ver a disponibilidade antes e organizar melhor os encontros presenciais.</p>
+
+      <h3 style="margin-top:22px;">Atalho rápido</h3>
+      <p>Escaneie o QR code fixado na porta de cada sala (ou clique em "Reservar" na seção Espaços, acima) e abre direto um evento com aquela sala já marcada no Google Calendar.</p>
+
+      <div class="card">
+        <h3>As salas já estão cadastradas</h3>
+        <p>Não precisa configurar nada: as 5 salas da Casinha já existem como recursos dentro do Google Calendar da Sharp. É só abrir um evento novo, clicar em "Adicionar salas" e escolher a que você quer — ela já aparece na lista pronta pra reservar.</p>
+      </div>
+
+      <h3 style="margin-top:22px;">Pelo Calendar, manualmente</h3>
+      <div class="steps">
+        <div class="step">Abra o Google Calendar e crie um novo evento.</div>
+        <div class="step">Adicione dia, horário e participantes.</div>
+        <div class="step">Clique em <strong>Adicionar salas</strong>.</div>
+        <div class="step">Acesse <strong>Todas as salas e recursos → Casinha</strong>.</div>
+        <div class="step">Escolha o espaço, confira disponibilidade e capacidade.</div>
+        <div class="step">Finalize as informações da reunião e clique em <strong>Salvar</strong>.</div>
+      </div>
+      <p style="margin-top:20px;">Reunião cancelada, mudou de horário ou trocou de sala? Atualize ou apague a reserva pra liberar o espaço.</p>
+    </section>
+
+    <section id="convivencia">
+      <span class="section-num">06</span>
+      <h2>Copa, alimentação e convivência</h2>
+      <p>A Casinha tem geladeira, airfryer, micro-ondas, sanduicheira, utensílios, churrasqueira e um espaço de descanso/descompressão.</p>
+      <ul>
+        <li>Faça as refeições nas áreas destinadas à alimentação.</li>
+        <li>Evite comer nas mesas de trabalho e salas de reunião.</li>
+        <li>Lave o que usar e guarde no lugar.</li>
+        <li>Deixe mesas e bancadas organizadas para quem vier depois.</li>
+      </ul>
+      <p><strong>Reposição:</strong> a Magenta é responsável pela reposição de papel higiênico.</p>
+    </section>
+
+    <section id="limpeza">
+      <span class="section-num">07</span>
+      <h2>Limpeza e organização</h2>
+      <p>A limpeza da Casinha está incluída na locação. Mesmo assim, quem usa é quem organiza: se derramou algo, sujou uma superfície ou usou utensílios, resolve na hora — não deixa pra equipe de limpeza.</p>
+    </section>
+
+    <section id="itens">
+      <span class="section-num">08</span>
+      <h2>Itens, equipamentos e manutenção</h2>
+      <p>Equipamento quebrado, problema no mobiliário ou manutenção pendente? Avise contando o que aconteceu, onde, quando e, se possível, mande uma foto.</p>
+    </section>
+
+    <section id="pernilongos">
+      <span class="section-num">09</span>
+      <h2>Área externa</h2>
+      <p>Como a Casinha tem área externa, é normal aparecer pernilongo. Evite deixar as portas abertas sem necessidade, principalmente no fim da tarde e à noite.</p>
+    </section>
+
+    <section id="fechamento">
+      <span class="section-num">10</span>
+      <h2>Checklist de fechamento</h2>
+      <p class="lede">Se você for a última pessoa a sair da Casinha:</p>
+
+      <div class="closing-block">
+        <h3>1 · Organização</h3>
+        <ul>
+          <li>Guarde os materiais utilizados e confira se não ficaram objetos pessoais.</li>
+          <li>Lave e guarde utensílios; deixe mesas, copa e áreas comuns organizadas.</li>
+        </ul>
+      </div>
+      <div class="closing-block">
+        <h3>2 · Janelas</h3>
+        <ul>
+          <li>Térreo: feche as janelas da sala de trabalho/coworking e da copa.</li>
+          <li>Andar superior: feche as janelas das duas salas e do banheiro.</li>
+        </ul>
+      </div>
+      <div class="closing-block">
+        <h3>3 · Portas e ambientes</h3>
+        <ul>
+          <li>Descompressão: feche completamente a parte de vidro — necessário para o alarme funcionar corretamente.</li>
+          <li>Andar de baixo: tranque a porta do corredor que dá acesso à área externa.</li>
+          <li>Área externa: confira se as duas portas da sala de reunião estão completamente fechadas — elas são mais duras e podem parecer fechadas sem estarem encaixadas. Faça uma segunda conferência.</li>
+        </ul>
+      </div>
+      <div class="closing-block">
+        <h3>4 · Luzes</h3>
+        <ul><li>Confira todos os ambientes e apague todas as luzes.</li></ul>
+      </div>
+      <div class="closing-block">
+        <h3>5 · Porta principal</h3>
+        <ul><li>Tranque corretamente a porta principal e confira se ficou fechada.</li></ul>
+      </div>
+      <div class="closing-block">
+        <h3>6 · Alarme</h3>
+        <ul><li>Só depois de conferir toda a casa: aperte o botão da Verisure, encoste a tag e confirme a ativação. Se não conseguir, não vá embora sem sinalizar — contate Regiane ou Erika.</li></ul>
+      </div>
+      <div class="closing-block">
+        <h3>7 · Portão</h3>
+        <ul><li>Feche o portão, coloque o cadeado e confira se ficou devidamente fechado.</li></ul>
+      </div>
+      <p class="lede" style="text-align:center; margin-top:10px;">Pronto: Casinha fechada. :)</p>
+    </section>
+
+    <section id="estacionamento">
+      <span class="section-num">11</span>
+      <h2>Estacionamento</h2>
+      <p>A Casinha não tem estacionamento próprio e tem pouca vaga na rua. Se vier de carro e não achar vaga por perto, uma opção próxima é:</p>
+      <p><strong>Rua Ferreira de Araújo, 741 — Pinheiros, São Paulo — SP, 05428-002</strong></p>
+      <p>Estacionando na rua, a Sharp e a administração da casa não se responsabilizam por eventuais ocorrências com o veículo.</p>
+    </section>
+
+    <section id="contatos">
+      <span class="section-num">12</span>
+      <h2>Contatos importantes</h2>
+      <p style="margin-bottom:20px;">Contatos da Magenta, empresa responsável pela administração da Casinha.</p>
+
+      <div class="contact-row">
+        <div class="contact-name">Regiane Campos</div>
+        <div class="contact-role">Alarme, segurança e suporte da casa</div>
+        <div class="contact-info">(11) 94070-6435 · regiane.campos@magenta.ag</div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-name">Erika Loaine</div>
+        <div class="contact-role">Alarme, segurança e suporte da casa</div>
+        <div class="contact-info">(11) 99433-5311 · erika.loaine@magenta.ag</div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-name">Davi Ozolin</div>
+        <div class="contact-role">TI, internet, acessos e senhas das portas</div>
+        <div class="contact-info">(11) 96437-5762 · davi.ozolin@magenta.ag</div>
+        <a class="book-btn" style="display:inline-flex; width:auto; margin-top:8px;" href="https://wa.me/5511964375762?text=Oi%20Davi!%20Sou%20da%20Sharp%20(Casinha%2C%20Casa%2058)%20e%20preciso%20de%20ajuda%20com%20" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+      </div>
+    </section>
+
+    <section id="jeito" style="border-bottom:none;">
+      <span class="section-num">13</span>
+      <h2>Nosso jeito de estar na Casinha</h2>
+      <p class="lede">A Casinha é de todo mundo. Como é usar a casa também é construção coletiva.</p>
+      <p>Ocupe a casa: trabalhe, converse, crie, receba gente, use os espaços. Só cuide dela durante o uso e deixe pronta pra quem vem depois. Isso mantém a Casinha leve, acolhedora e com a cara da Sharp.</p>
+    </section>
+
+  </main>
+
+  <div class="pending" id="pendencias">
+    <main>
+      <div class="eyebrow">Antes de publicar a versão oficial</div>
+      <h2>Pendências para decisão</h2>
+      <p class="lede">Pontos que ainda dependem de decisão ou confirmação da Micha antes de fecharmos este manual.</p>
+
+      <div class="pending-item">
+        <span class="tag">Contatos da Magenta</span>
+        <p>Disponibilizar Regiane, Erika e Davi diretamente para todo o time, ou centralizar esse tipo de acionamento por alguém do time primeiro?</p>
+      </div>
+      <div class="pending-item">
+        <span class="tag">Reposição de itens</span>
+        <p>Além do papel higiênico (já confirmado como responsabilidade da Magenta), quais outros insumos eles repõem — papel-toalha, sabonete, detergente, esponja, sacos de lixo, materiais de limpeza?</p>
+      </div>
+      <div class="pending-item">
+        <span class="tag">Inventário da Casa 58</span>
+        <p>Existe inventário ou termo de entrega com todos os itens (mobiliário, eletrodomésticos, equipamentos) recebidos com a casa?</p>
+      </div>
+      <div class="pending-item">
+        <span class="tag">Canal de manutenção</span>
+        <p>Qual é o canal correto para solicitar manutenção, e quais tipos ficam sob responsabilidade da Magenta?</p>
+      </div>
+      <div class="pending-item">
+        <span class="tag">Pernilongos</span>
+        <p>A Magenta tem alguma medida de controle prevista, ou a Sharp precisa buscar uma solução própria para a área externa?</p>
+      </div>
+      <div class="pending-item">
+        <span class="tag">Vigia</span>
+        <p>O contrato menciona um serviço de "vigia diurno" para a casa, mas sem detalhes de funcionamento. Existe vigia atendendo a Casinha hoje? É diurno, ou também noturno? Dias, horários, e em quais situações o time pode acioná-lo?</p>
+      </div>
+      <div class="pending-item">
+        <span class="tag">Clientes e visitantes</span>
+        <p>Queremos estabelecer alguma orientação específica para entrada e permanência de clientes, parceiros e fornecedores externos?</p>
+      </div>
+    </main>
+  </div>
+
+  <footer>©SHARP · Confidencial · 2026</footer>
+
+</div>
+
+<a href="#bemvindos" class="to-top" id="toTop" aria-label="Voltar ao topo">↑</a>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  var SUPABASE_URL = 'https://eavluxeygfvyxkbzargs.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_88yxvlXIJrxkdkQtwtMwlg_wb2p8W__';
+  var ALLOWED_DOMAIN = 'sharpit.co';
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  var PWD_KEY = 'casinha_pwd_ok';
+  var authGate = document.getElementById('auth-gate');
+  var onboardingGate = document.getElementById('onboarding-gate');
+  var app = document.getElementById('app');
+  var loginBtn = document.getElementById('google-login-btn');
+  var errorEl = document.getElementById('auth-error');
+  var logoutLink = document.getElementById('logout-link');
+  var onboardingConfirmBtn = document.getElementById('onboarding-confirm-btn');
+
+  function showError(msg){
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+  }
+
+  function hasRegisteredPassword(){
+    try { return localStorage.getItem(PWD_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function showApp(){
+    authGate.style.display = 'none';
+    onboardingGate.style.display = 'none';
+    app.style.display = '';
+  }
+
+  function showOnboarding(){
+    authGate.style.display = 'none';
+    onboardingGate.style.display = 'flex';
+    app.style.display = 'none';
+  }
+
+  function grant(){
+    if (hasRegisteredPassword()){
+      showApp();
+    } else {
+      showOnboarding();
+    }
+  }
+
+  function deny(msg){
+    authGate.style.display = 'flex';
+    onboardingGate.style.display = 'none';
+    app.style.display = 'none';
+    if (msg) showError(msg);
+  }
+
+  async function checkSession(){
+    var res = await sb.auth.getSession();
+    var session = res.data && res.data.session;
+    if (!session){ deny(); return; }
+    var email = (session.user && session.user.email) || '';
+    if (email && email.toLowerCase().endsWith('@' + ALLOWED_DOMAIN.toLowerCase())){
+      grant();
+    } else {
+      await sb.auth.signOut();
+      deny('Use um e-mail @' + ALLOWED_DOMAIN + '. Você entrou com ' + email + '.');
+    }
+  }
+
+  loginBtn.addEventListener('click', function(){
+    sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+        queryParams: { hd: ALLOWED_DOMAIN, prompt: 'select_account' }
+      }
+    });
+  });
+
+  onboardingConfirmBtn.addEventListener('click', function(){
+    try { localStorage.setItem(PWD_KEY, '1'); } catch (e) {}
+    showApp();
+  });
+
+  logoutLink.addEventListener('click', function(){
+    sb.auth.signOut().then(function(){ location.reload(); });
+  });
+
+  sb.auth.onAuthStateChange(function(){ checkSession(); });
+  checkSession();
+})();
+</script>
+
+<script>
+(function(){
+  var toggle = document.getElementById('nav-toggle');
+  var links = document.querySelectorAll('#sidebar-nav a');
+
+  links.forEach(function(link){
+    link.addEventListener('click', function(){
+      if (toggle) toggle.checked = false;
+    });
+  });
+
+  var sections = [];
+  links.forEach(function(link){
+    var id = link.getAttribute('data-target');
+    var el = document.getElementById(id);
+    if (el) sections.push({ id: id, el: el, link: link });
+  });
+
+  if ('IntersectionObserver' in window && sections.length){
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var match = sections.find(function(s){ return s.el === entry.target; });
+        if (!match) return;
+        if (entry.isIntersecting){
+          links.forEach(function(l){ l.classList.remove('active'); });
+          match.link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s){ observer.observe(s.el); });
+  }
+
+  var toTop = document.getElementById('toTop');
+  if (toTop) {
+    window.addEventListener('scroll', function(){
+      if (window.scrollY > 500) toTop.classList.add('show');
+      else toTop.classList.remove('show');
+    }, { passive:true });
+  }
+})();
+</script>
+
+</body>
+</html>

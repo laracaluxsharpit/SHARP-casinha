@@ -199,9 +199,21 @@
   .report-box input, .report-box textarea{ width:100%; background:transparent; border:1px solid rgba(255,255,255,.25); color:var(--white); font-family:inherit; font-size:14px; padding:10px 12px; box-sizing:border-box; }
   .report-box input:focus, .report-box textarea:focus{ outline:none; border-color:rgba(255,255,255,.6); }
   .report-box textarea{resize:vertical;}
+  .report-box input[type="file"]{border:none; padding:4px 0; color:rgba(255,255,255,.85); font-size:13px;}
   .report-box .auth-error{text-align:left;}
   .report-success{color:rgba(255,255,255,.85); font-size:14px; line-height:1.7;}
   #report-cancel{ display:block; margin:14px auto 0; background:none; border:none; }
+
+  .feedback-fab{
+    position:fixed; left:16px; bottom:calc(16px + env(safe-area-inset-bottom,0px));
+    background:var(--black); color:var(--white); font-family:inherit;
+    font-size:11px; letter-spacing:1.2px; text-transform:uppercase;
+    padding:13px 16px; border:none; cursor:pointer; z-index:90;
+    display:flex; align-items:center; gap:8px;
+    transition:opacity .3s ease;
+  }
+  .feedback-fab:hover{opacity:.8;}
+  .feedback-fab-badge{font-size:9px; letter-spacing:1px; border:1px solid rgba(255,255,255,.5); padding:2px 6px;}
 
   .logo-mark{height:15px; width:auto; display:block;}
   .topbar .logo-mark{height:13px;}
@@ -237,6 +249,7 @@
       padding:44px 30px 30px;
     }
     .content-wrap{margin-left:var(--sidebar-w);}
+    .feedback-fab{left:calc(var(--sidebar-w) + 16px);}
 
     .hero{padding:90px 24px 70px;}
     .hero h1{font-size:clamp(46px,5vw,64px); letter-spacing:3px;}
@@ -690,11 +703,37 @@
         <label for="report-desc">O que aconteceu</label>
         <textarea id="report-desc" rows="4" required></textarea>
       </div>
+      <div>
+        <label for="report-foto">Foto (opcional)</label>
+        <input type="file" id="report-foto" accept="image/*">
+      </div>
       <button type="submit" class="book-btn">Enviar reporte</button>
       <button type="button" id="report-cancel" class="logout-link">Cancelar</button>
     </form>
     <p class="auth-error" id="report-error"></p>
     <p class="report-success" id="report-success" style="display:none">Reporte salvo. Abrindo seu e-mail pra confirmar o envio pra Lara, Micha e Clarissa...</p>
+  </div>
+</div>
+
+<button type="button" class="feedback-fab" id="open-feedback-btn">
+  <span class="feedback-fab-badge">novo</span>
+  Deixe seu feedback
+</button>
+
+<div class="report-gate" id="feedback-modal" style="display:none">
+  <div class="report-box">
+    <h2>A Casinha é novidade pra todo mundo</h2>
+    <p class="auth-msg">Sugestão, melhoria, ideia? Conta aqui — a gente lê tudo.</p>
+    <form id="feedback-form">
+      <div>
+        <label for="feedback-msg">Sua mensagem</label>
+        <textarea id="feedback-msg" rows="5" required></textarea>
+      </div>
+      <button type="submit" class="book-btn">Enviar</button>
+      <button type="button" id="feedback-cancel" class="logout-link">Cancelar</button>
+    </form>
+    <p class="auth-error" id="feedback-error"></p>
+    <p class="report-success" id="feedback-success" style="display:none">Feedback enviado. Obrigada!</p>
   </div>
 </div>
 
@@ -902,11 +941,26 @@
       email = (session && session.user && session.user.email) || '';
     } catch (err) {}
 
+    var fotoUrl = null;
+    var fotoInput = document.getElementById('report-foto');
+    var fotoFile = fotoInput && fotoInput.files && fotoInput.files[0];
+    if (fotoFile) {
+      submitBtn.textContent = 'Enviando foto...';
+      var path = Date.now() + '-' + fotoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      var uploadResult = await sb.storage.from('manutencao-fotos').upload(path, fotoFile);
+      if (!uploadResult.error) {
+        var pub = sb.storage.from('manutencao-fotos').getPublicUrl(path);
+        fotoUrl = pub.data && pub.data.publicUrl;
+      }
+      submitBtn.textContent = 'Enviando...';
+    }
+
     var insertResult = await sb.from('manutencao_reports').insert({
       reporter_email: email,
       item: item,
       local: local,
-      descricao: desc
+      descricao: desc,
+      foto_url: fotoUrl
     });
 
     submitBtn.disabled = false;
@@ -926,12 +980,75 @@
       'Item/equipamento: ' + item + '\n' +
       'Local: ' + (local || 'não informado') + '\n' +
       'O que aconteceu: ' + desc + '\n' +
-      'Reportado por: ' + (email || 'não identificado')
+      'Reportado por: ' + (email || 'não identificado') +
+      (fotoUrl ? '\nFoto: ' + fotoUrl : '')
     );
     var mailto = 'mailto:' + REPORT_RECIPIENTS.join(',') + '?subject=' + subject + '&body=' + body;
 
     setTimeout(function(){ window.location.href = mailto; }, 800);
     setTimeout(function(){ modal.style.display = 'none'; }, 3000);
+  });
+})();
+</script>
+
+<script>
+(function(){
+  var openBtn = document.getElementById('open-feedback-btn');
+  var modal = document.getElementById('feedback-modal');
+  var cancelBtn = document.getElementById('feedback-cancel');
+  var form = document.getElementById('feedback-form');
+  var errorEl = document.getElementById('feedback-error');
+  var successEl = document.getElementById('feedback-success');
+  if (!openBtn || !modal || !form) return;
+
+  openBtn.addEventListener('click', function(){
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+    form.style.display = 'flex';
+    form.reset();
+    modal.style.display = 'flex';
+  });
+
+  cancelBtn.addEventListener('click', function(){
+    modal.style.display = 'none';
+  });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    errorEl.style.display = 'none';
+
+    var mensagem = document.getElementById('feedback-msg').value.trim();
+    if (!mensagem) return;
+
+    var submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    var sb = window.sbClient;
+    var email = '';
+    try {
+      var res = await sb.auth.getSession();
+      var session = res.data && res.data.session;
+      email = (session && session.user && session.user.email) || '';
+    } catch (err) {}
+
+    var insertResult = await sb.from('feedback_casinha').insert({
+      author_email: email,
+      mensagem: mensagem
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Enviar';
+
+    if (insertResult.error) {
+      errorEl.textContent = 'Não consegui enviar. Tenta de novo.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    form.style.display = 'none';
+    successEl.style.display = 'block';
+    setTimeout(function(){ modal.style.display = 'none'; }, 2000);
   });
 })();
 </script>
